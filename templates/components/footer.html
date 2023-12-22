@@ -1,11 +1,18 @@
 <footer class="footer mt-auto p-0 m-0 py-3 bg-body-tertiary">
     <ul class="nav justify-content-center border-bottom">
         <li class="nav-item">
-            <a href="#" class="nav-link px-2 text-body-secondary">НАВЕРХ!</a>
+            <a href="#" class="nav-link px-2 text-body-secondary">Сотрудникам</a>
         </li>
         <li class="nav-item">
             <a href="#" class="nav-link px-2 text-body-secondary">Рекламодателям</a>
         </li>
+        <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Тема</button>
+            <ul class="dropdown-menu">
+              <li><button class="dropdown-item" onClick="changethemelight()">Светлая</button></li>
+              <li><button class="dropdown-item" onClick="changethemedark()">Темная</button></li>
+            </ul>
+          </li>
     </ul>
     <p class="text-center text-body-secondary">© 2024 Все права защищены!</p>
 </footer>

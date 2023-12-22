@@ -38,3 +38,22 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=User)
 def create_user_model(sender, instance, created, **kwargs):
     UserProfile.objects.get_or_create(user=instance)
+    
+    
+    
+# class Posts(models.Model):
+#     id = models.IntegerField(primary_key=True, auto_created=True)
+#     title = models.TextField()
+#     author = models.TextField()
+#     desc = models.TextField()
+#     media = models.FileField()
+#     approved = models.BooleanField()
+    
+#     class Meta:
+#         app_label = "posts"
+#         ordering = ("-id", "author")
+#         verbose_name = "posti"
+#         verbose_name_plural = "posti"
+
+#     def __str__(self):
+#         return f"{self.id}, {self.title}, {self.author}, {self.desc}, {self.approved}"

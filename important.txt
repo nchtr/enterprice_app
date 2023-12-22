@@ -1,0 +1,4 @@
+21ae35ce91a5473e8a0a9ce12c03db7d api key
+https://newsapi.org/v2/top-headlines?country=ru&apiKey=21ae35ce91a5473e8a0a9ce12c03db7d
+anna_k1k1k@inbox.ru
+vP123456789!
