@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from django.core.cache import caches
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -11,6 +12,9 @@ from django.views import View
 import requests
 
 # Create your views here.
+
+RamCache = caches["default"]
+DatabaseCache = caches["extra"]
 
 def register(request):
         if request.method == "GET":
@@ -67,25 +71,15 @@ def login_(request: HttpRequest) -> HttpResponse:
 class HomePage(View):
     def get(self, request):
         news = self.get_news()
-        return render(request=request, template_name="mainpage.html", )
+        return render(request=request, template_name="mainpage.html", context={'first':news[0], 'second':news[1], 'third':news[2]})
     
     def get_news(self):
-        data=[]
-        news_api="https://newsapi.org/v2/top-headlines?country=ru&apiKey=21ae35ce91a5473e8a0a9ce12c03db7d"
-        for i in requests.get(news_api).json()["articles"]:
-            data.append({'author':i["author"], 'title':i['title'], 'publish_date':datetime.datetime.strftime(datetime.datetime.fromisoformat(str(i['publishedAt'])), '%d.%m.%Y'), 'publish_time':datetime.datetime.strftime(datetime.datetime.fromisoformat(str(i['publishedAt'])), '%H:%M'), 'url':i['url']})
+        data = RamCache.get(f"news")
+        if data is None:
+            data=[]
+            news_api="https://newsapi.org/v2/top-headlines?country=ru&apiKey=21ae35ce91a5473e8a0a9ce12c03db7d"
+            for i in requests.get(news_api).json()["articles"]:
+                data.append({'author':i["author"], 'title':i['title'], 'publish_date':datetime.datetime.strftime(datetime.datetime.fromisoformat(str(i['publishedAt'])), '%d.%m.%Y'), 'publish_time':datetime.datetime.strftime(datetime.datetime.fromisoformat(str(i['publishedAt'])), '%H:%M'), 'url':i['url']})
+            RamCache.set(f"news", data, timeout=90)
+        
         return data
-    
-    def login_from_main(self, request):
-        if request.method == "GET":
-            return render(request, "mainpage.html")
-        elif request.method == "POST":
-            email = request.POST.get("email", None)
-            password = request.POST.get("password", None)
-            user = authenticate(request, username=email, password=password)
-            if user is None:
-                return render(request, "loginpage.html", {"error": "Некорректный email или пароль"})
-            login(request, user)
-            return redirect(reverse("home"))
-        else:
-            raise ValueError("Invalid method")

@@ -84,6 +84,21 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "django_ram_cache_table",
+    },
+    "extra": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache_db_table",
+        "TIMEOUT": "120",
+        "OPTIONS": {
+            # "MAX_ENTIES": 200,
+        },
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
