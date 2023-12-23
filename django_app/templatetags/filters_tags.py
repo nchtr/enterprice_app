@@ -51,15 +51,10 @@ def digit_beautify(value):
     out, rnd = src.split(".")
     print(f"out: {out}")
     # TODO костыль
-    if 3 < len(out) <= 6:
-        out = out[3:] + " " + out[0:3]
-    elif 6 < len(out) <= 9:
-        out = out[6:] + " " + out[3:6] + " " + out[0:3]
-    elif 9 < len(out) <= 12:
-        out = out[9:] + " " + out[6:9] + " " + out[3:6] + " " + out[0:3]
-    elif 12 < len(out) <= 15:
-        out = out[12:] + " " + out[9:12] + " " + out[6:9] + " " + out[3:6] + " " + out[0:3]
-    return f"{out},{rnd}"  # out = out.replace(".", ",")  # TODO русификация разрядов
+    chunks = [out[i:i + 3] for i in range(0, len(out), 3)]
+    formatted_out = ' '.join(chunks[::-1])
+
+    return f"{formatted_out},{rnd}"  # out = out.replace(".", ",")  # TODO русификация разрядов
 
 
 @register.simple_tag(takes_context=True)
@@ -158,4 +153,4 @@ def user_groups(context: dict) -> list:
             names.append(i.name)
         return names
     except:
-        return []
+        return 'user'

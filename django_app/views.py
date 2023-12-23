@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
+from django_app import models
 import requests
 
 # Create your views here.
@@ -67,11 +68,21 @@ def login_(request: HttpRequest) -> HttpResponse:
         return redirect(reverse("home"))
     else:
         raise ValueError("Invalid method")
+    
+@login_required
+def logout_(request: HttpRequest) -> HttpResponse:
+    """Выход из аккаунта"""
+
+    logout(request)
+    return redirect(reverse("home"))
 
 class HomePage(View):
     def get(self, request):
         news = self.get_news()
-        return render(request=request, template_name="mainpage.html", context={'first':news[0], 'second':news[1], 'third':news[2]})
+        news1 = news
+        post = self.get_mp_posts(request)
+        print(post)
+        return render(request=request, template_name="mainpage.html", context={'first':news1[0], 'second':news1[1], 'third':news1[2], 'post': self.get_mp_posts(request)})
     
     def get_news(self):
         data = RamCache.get(f"news")
@@ -80,6 +91,11 @@ class HomePage(View):
             news_api="https://newsapi.org/v2/top-headlines?country=ru&apiKey=21ae35ce91a5473e8a0a9ce12c03db7d"
             for i in requests.get(news_api).json()["articles"]:
                 data.append({'author':i["author"], 'title':i['title'], 'publish_date':datetime.datetime.strftime(datetime.datetime.fromisoformat(str(i['publishedAt'])), '%d.%m.%Y'), 'publish_time':datetime.datetime.strftime(datetime.datetime.fromisoformat(str(i['publishedAt'])), '%H:%M'), 'url':i['url']})
-            RamCache.set(f"news", data, timeout=90)
+            RamCache.set(f"news", data, timeout=480)
         
         return data
+    
+    def get_mp_posts(self, request):
+        mp_post_ft = models.PostRatings.objects.order_by('-count')[:1]
+        print(mp_post_ft)
+        return mp_post_ft

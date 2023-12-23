@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "grappelli",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -38,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     
-    "grappelli",
+    
     
     "django_app",
 ]
@@ -150,8 +151,8 @@ else:
         Path(BASE_DIR / "static_external"),
     ]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = "static/media"
+MEDIA_URL = "media/"
+MEDIA_ROOT = "static/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
