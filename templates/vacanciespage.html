@@ -1,0 +1,31 @@
+{% extends "components/main.html" %}
+
+{% block title %}Вакансии{% endblock title %}
+
+{% block main %}
+<div class="album py-5 bg-body-tertiary">
+    <div class="container">
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+        {% for vacancy in vacancies %}
+        <div class="col">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <p class="card-text">{{vacancy.title}}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-outline-secondary">Просмотреть</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary">Откликнуться</button>
+                </div>
+                <div class="d-flex flex-column">
+                  <small class="text-body-secondary">{{vacancy.salary}} тенге</small>
+                  <small class="text-body-secondary">{{vacancy.date_time}}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock main%}

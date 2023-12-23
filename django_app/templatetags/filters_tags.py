@@ -24,7 +24,9 @@ def check_user_group(context: str, groups: str = "", cnt=1, c=1) -> bool:
         user: User = context["request"].user
 
         # print(groups)       # "Модераторы контента, Модераторы, Модераторы, Привет"
-        groups_list = sorted(list(set([x.strip() for x in groups.split(",")])), reverse=False)
+        groups_list = sorted(
+            list(set([x.strip() for x in groups.split(",")])), reverse=False
+        )
         # print(groups_list)  # ['Модераторы', 'Модераторы контента', 'Привет']
 
         this_user_groups: list[str] = [x.name for x in user.groups.all()]
@@ -51,8 +53,8 @@ def digit_beautify(value):
     out, rnd = src.split(".")
     print(f"out: {out}")
     # TODO костыль
-    chunks = [out[i:i + 3] for i in range(0, len(out), 3)]
-    formatted_out = ' '.join(chunks[::-1])
+    chunks = [out[i : i + 3] for i in range(0, len(out), 3)]
+    formatted_out = " ".join(chunks[::-1])
 
     return f"{formatted_out},{rnd}"  # out = out.replace(".", ",")  # TODO русификация разрядов
 
@@ -153,4 +155,4 @@ def user_groups(context: dict) -> list:
             names.append(i.name)
         return names
     except:
-        return 'user'
+        return "user"

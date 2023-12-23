@@ -25,12 +25,14 @@ SECRET_KEY = "django-insecure-mfga*x&ogxeo%%)o6!lj$ghi=k4gi4^5ejsb3ggqi_lbq*u39p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     "grappelli",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -40,11 +42,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     
     
-    
+    "corsheaders",
+    'rest_framework',
     "django_app",
 ]
 
 MIDDLEWARE = [
+    "django_app.middleware.CustomCorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -73,7 +78,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "django_settings.wsgi.application"
+ASGI_APPLICATION = 'django_settings.asgi.application'
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

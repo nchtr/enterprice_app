@@ -86,7 +86,9 @@ class CustomPaginator:
         """Пагинация данных."""
 
         _paginator = Paginator(object_list, limit)
-        _page = _paginator.get_page(request.GET.get(key="page", default=1))  # http://127.0.0.1:8000/ratings/top/?page=1  # path parameter
+        _page = _paginator.get_page(
+            request.GET.get(key="page", default=1)
+        )  # http://127.0.0.1:8000/ratings/top/?page=1  # path parameter
         return _page
 
     @staticmethod

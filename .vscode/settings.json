@@ -1,0 +1,7 @@
+{
+    "black-formatter.importStrategy": "fromEnvironment",
+    "autopep8.importStrategy": "fromEnvironment",
+    "editor.fontVariations": false,
+    "editor.fontWeight": "normal",
+    "editor.formatOnSave": true
+}
