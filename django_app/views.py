@@ -175,3 +175,12 @@ def vacancies_list(request):
     vacancieslist=models.Vacancies.objects.all()
     print(vacancieslist)
     return render(request=request, template_name="vacanciespage.html", context={"vacancies":vacancieslist})
+
+@login_required
+def vacancy_detail(request, slug):
+    vacancy=models.Vacancies.objects.get(slug=slug)
+    return render(request, 'vacancydetail.html', context={"vacancy":vacancy})
+
+@login_required
+def vacancy_request(request, slug):
+    return render(request, 'vacancyrequest.html', context={})

@@ -4,6 +4,8 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, pre_save, pre_delete
 from django.utils.timezone import now
+from django.utils.text import slugify
+from transliterate import translit
 
 # Create your models here.
 
@@ -136,7 +138,7 @@ class Vacancies(models.Model):
     is_active = models.BooleanField(verbose_name="activity", default=False)
     is_distant = models.BooleanField(verbose_name="worktype", default=False)
     salary = models.IntegerField()
-    slug = models.SlugField(unique=True, default=f"{title}")
+    slug = models.SlugField(default="changeit")
 
     class Meta:
         app_label = "django_app"
@@ -144,8 +146,12 @@ class Vacancies(models.Model):
         verbose_name = "вакансии"
         verbose_name_plural = "вакансии"
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(translit(f"{self.title}", "ru", reversed=True)+"-"+translit(f"{self.company}", "ru", reversed=True))
+        super(Vacancies, self).save(*args, **kwargs)
+
     def __str__(self):
-        return f"<Vacancy {self.title} {self.description} {self.company} {self.image} {self.salary} {self.date_time} {self.is_active} {self.is_distant}>"
+        return f"<Vacancy {self.title} {self.description} {self.company} {self.salary} {self.date_time} {self.is_active} {self.is_distant} {self.slug}>"
 
 
 class Resume(models.Model):

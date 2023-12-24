@@ -3,14 +3,22 @@
 {% block title %}Главная страница{% endblock title %}
 
 {% block main %}
-    <div class="my-5">
-        <div class="p-5 text-center bg-body-tertiary">
-        <div class="container py-5">
-            <h1 class="text-body-emphasis">{{}}</h1>
-            <p class="col-lg-8 mx-auto lead">
-            This takes the basic jumbotron above and makes its background edge-to-edge with a <code>.container</code> inside to align content. Similar to above, it's been recreated with built-in grid and utility classes.
+    <div class="container my-5">
+        <div class="p-5 text-center bg-body-tertiary rounded-3">
+            <h1 class="text-body-emphasis">{{vacancy.title}}</h1>
+            <hr>
+            <h3 class="text-body-emphasis">{{vacancy.company}}</h3>
+            <h4 class="text-body-emphasis">{{vacancy.salary}} денег </h4>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                Подробнее
+              </button>
             </p>
+            <div class="collapse" id="collapseExample">
+              <div class="card card-body">
+                {{vacancy.description}}
+              </div>
+            </div>
+            <div class="d-flex justify-content-center"><a class="btn btn-success mx-1" href="#">Откликнуться</a><a class="btn btn-gray mx-1" href="{%url 'vacancies'%}">Назад</a></div>
         </div>
-        </div>
-    </div>
+      </div>
 {% endblock main %}

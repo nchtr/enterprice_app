@@ -118,7 +118,7 @@ class VacanciesAdmin(admin.ModelAdmin):
         "title",
         "description",
         "company",
-        "image",
+        "slug",
         "date_time",
         "is_active",
         "is_distant",

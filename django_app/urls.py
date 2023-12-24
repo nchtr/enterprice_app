@@ -16,6 +16,8 @@ urlpatterns = [
     path("messages/", views.messages),
     path("<slug:slug>/", views.room, name="room"),
     path("vacancies", views.vacancies_list, name="vacancies"),
+    path("vacancy/<slug:slug>/", views.vacancy_detail, name="vacancy"),
+    path("vacancy/request/<slug:slug>/", views.vacancy_request, name="vacancyrequest"),
     
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
