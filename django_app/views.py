@@ -5,15 +5,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.core.cache import caches
+from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
+
 from django_app import models, serializers
 import requests
 from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.request import Request
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 # Create your views here.
@@ -91,18 +93,10 @@ def logout_(request: HttpRequest) -> HttpResponse:
 class HomePage(View):
     def get(self, request):
         news = self.get_news()
-        news1 = news
-        post = self.get_mp_posts(request)
-        print(post)
         return render(
             request=request,
             template_name="mainpage.html",
-            context={
-                "first": news1[0],
-                "second": news1[1],
-                "third": news1[2],
-                "post": self.get_mp_posts(request),
-            },
+            context={"first": news[0], "second": news[1], "third": news[2]},
         )
 
     def get_news(self):
@@ -130,33 +124,13 @@ class HomePage(View):
 
         return data
 
-    def get_mp_posts(self, request):
-        mp_post_ft = models.PostRatings.objects.order_by("-count")[:1]
-        print(mp_post_ft)
-        return mp_post_ft
 
-
-@api_view(http_method_names=["GET", "POST"])  # красивый интерфейс
-def messages(request: Request) -> Response:
-    if request.method == "GET":
-        message_list = models.Messages.objects.filter(
-            from_user__username="admin"
-        ) | models.Messages.objects.filter(to_user__username="admin")
-        data = serializers.MessageSerializer(message_list, many=True).data
-        return Response(data=data, status=status.HTTP_200_OK)
-    elif request.method == "POST":
-        # {"message": "Привет Айгерим!"}
-        print(request.GET)
-        print(request.POST)
-        print(request.FILES)
-        # print(request.body)
-        print(request.data)  # dictionary
-
-        message: str = request.data.get("message", "")
-        with open("messages.txt", "a", encoding="utf-8") as file:
-            file.write(f"{message}\n")
-
-        return Response(data={"message": "OK"}, status=status.HTTP_201_CREATED)
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def js_debug_page(request) -> Response:
+    user = models.User.objects.get(username=request.user.username)
+    userdata = serializers.UserSerializer(user, many=False).data
+    return Response(data=userdata, status=status.HTTP_200_OK)
 
 
 @login_required
@@ -165,22 +139,189 @@ def room(request, slug):
     print(room_obj)
     messages = models.Message.objects.filter(room=room_obj)[:2][::-1]
     return render(
-        request,
-        "chat_room.html",
-        context={"room": room_obj, "messages": messages}
+        request, "chat_room.html", context={"room": room_obj, "messages": messages}
     )
-    
+
+
 @login_required
 def vacancies_list(request):
-    vacancieslist=models.Vacancies.objects.all()
-    print(vacancieslist)
-    return render(request=request, template_name="vacanciespage.html", context={"vacancies":vacancieslist})
+    vacancieslist = models.Vacancies.objects.all()
+    return render(
+        request=request,
+        template_name="vacanciespage.html",
+        context={"vacancies": vacancieslist},
+    )
+
 
 @login_required
 def vacancy_detail(request, slug):
-    vacancy=models.Vacancies.objects.get(slug=slug)
-    return render(request, 'vacancydetail.html', context={"vacancy":vacancy})
+    vacancy = models.Vacancies.objects.get(slug=slug)
+    return render(request, "vacancydetail.html", context={"vacancy": vacancy})
+
 
 @login_required
-def vacancy_request(request, slug):
-    return render(request, 'vacancyrequest.html', context={})
+def resume_request(request):
+    if request.method == "GET":
+        return render(request, "resumeform.html", context={"success": "True"})
+    elif request.method == "POST":
+        if models.Resume.objects.filter(person__username=request.user).count() < 1:
+            models.Resume.objects.create(
+                person=request.user,
+                title=str(request.POST["title"]),
+                first_name=str(request.POST["first_name"]),
+                last_name=str(request.POST["last_name"]),
+                iin=request.POST["iin"],
+                text=str(request.POST["text"]),
+                photo=request.FILES.get("photo", None),
+                documents=request.FILES.get("file", None),
+            )
+            return redirect(reverse("resumerequest"))
+
+        else:
+            return redirect(reverse("resumerequest"))
+
+
+@login_required
+def vac_response(request, slug):
+    vac = models.Vacancies.objects.get(slug=slug)
+    res = models.Resume.objects.get(person=request.user)
+    models.VacancyRequests.objects.create(title=vac, resume=res)
+    return redirect(reverse("vacancies"))
+
+
+@login_required
+def post_list(request):
+    posts = models.Post.objects.filter(is_active=True)
+    selected_page = request.GET.get(key="page", default=1)
+    limit_post_by_page = 3
+    paginator = Paginator(posts, limit_post_by_page)
+    current_page = paginator.get_page(selected_page)
+    return render(
+        request,
+        "postpage.html",
+        context={"current_page": current_page, "is_detail_view": True},
+    )
+
+
+@login_required
+def post_detail(request: HttpRequest, slug: str) -> HttpResponse:
+    # 1. Проверяем, нет ли объект-а в кэш-е
+    # 1.1 Если есть, возвращаем кэш
+    # 2. Получаем объект из базы данных
+    # 2.1 Кэшируем объект
+    # 2.2 Возращаем объект
+
+    post = RamCache.get(f"post_detail_{slug}")
+    if post is None:
+        post = models.Post.objects.get(
+            slug=slug
+        )  # тяжёлое обращение к базе данных -- 100x - 1000x
+        RamCache.set(f"post_detail_{slug}", post, timeout=30)
+
+    # Если мы поставили лайк - то закрашиваем кнопку
+    # post + user
+
+    comments = models.PostComments.objects.filter(post=post)
+    ratings = models.PostRatings.objects.filter(post=post)
+    ratings = {
+        "like": ratings.filter(status=True).count(),
+        "dislike": ratings.filter(status=False).count(),
+        "total": ratings.filter(status=True).count()
+        - ratings.filter(status=False).count(),
+    }
+
+    return render(
+        request,
+        "postdetail.html",
+        context={
+            "post": post,
+            "comments": comments,
+            "ratings": ratings,
+            "is_detail_view": True,
+        },
+    )
+
+
+@login_required
+def post_post(request):
+    if request.method == "GET":
+        return render(request, "postform.html")
+    elif request.method == "POST":
+        models.Post.objects.create(
+            author=request.user,
+            title=request.POST["title"],
+            description=request.POST["description"],
+            image=request.FILES.get("image", None),
+        )
+        return redirect(reverse("postlist"))
+
+
+@login_required
+def post_list_simple(request: HttpRequest) -> HttpResponse:
+    posts = models.Post.objects.filter(is_active=True)
+    selected_page = request.GET.get(key="page", default=1)
+    limit_post_by_page = 3
+    paginator = Paginator(posts, limit_post_by_page)
+    current_page = paginator.get_page(selected_page)
+    return render(
+        request,
+        "postpage.html",
+        context={"current_page": current_page, "is_detail_view": False},
+    )
+
+
+@login_required
+def post_comment(request, slug):
+    post = models.Post.objects.get(slug=slug)
+    text = request.POST.get("text", "")
+    models.PostComments.objects.create(post=post, author=request.user, text=text)
+
+    return redirect(reverse("post_detail", args=(slug,)))
+
+
+@login_required
+def post_rating(request: HttpRequest, slug, is_like: str) -> HttpResponse:
+    post = models.Post.objects.get(slug=slug)
+    is_like = (
+        True if str(is_like).lower().strip() == "лайк" else False
+    )  # тернарный оператор
+
+    ratings = models.PostRatings.objects.filter(post=post, author=request.user)
+    if len(ratings) < 1:
+        models.PostRatings.objects.create(
+            post=post, author=request.user, status=is_like
+        )
+    else:
+        rating = ratings[0]
+        if is_like is True and rating.status is True:
+            rating.delete()
+        elif is_like is False and rating.status is False:
+            rating.delete()
+        else:
+            rating.status = is_like
+            rating.save()
+
+    return redirect(reverse("postdetail", args=(slug,)))
+
+
+@login_required
+def post_hide(request: HttpRequest, slug: str) -> HttpResponse:
+    post = models.Post.objects.get(slug=slug)
+    post.is_active = False
+    post.save()
+    return redirect(reverse("postlist"))
+
+
+@login_required
+def post_comment_create(request: HttpRequest, slug: str) -> HttpResponse:
+    """Создание комментария."""
+
+    post = models.Post.objects.get(slug=slug)
+    text = request.POST.get("text", "")
+    models.PostComments.objects.create(post=post, author=request.user, text=text)
+
+    return redirect(reverse("postdetail", args=(slug,)))
+
+
+def profile(request):
+    return render(request=request, template_name="build/index.html")

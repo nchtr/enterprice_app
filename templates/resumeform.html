@@ -1,0 +1,118 @@
+{% extends "components/main.html" %}
+{% block title %}Резюме{% endblock title%} 
+
+{% block main %}
+
+
+{% if error %}
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+  
+<div class="d-flex justify-content-center align-items-column py-5">
+  <div class="col-md-7 col-lg-8">
+    <h4 class="mb-3">Оставить резюме</h4>
+    <form action={% url 'resumerequest' %} method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-12">
+          <label for="Title" class="form-label">Заголовок</label>
+          <input
+            name="title"
+            type="text"
+            class="form-control"
+            id="Title"
+            placeholder="Придумайте яркий заголовок"
+            value=""
+            required=""
+          />
+        </div>
+        <div class="col-sm-6">
+          <label for="firstName" class="form-label">Имя</label>
+          <input
+            name="first_name"
+            type="text"
+            class="form-control"
+            id="firstName"
+            placeholder="Василий"
+            value=""
+            required=""
+          />
+        </div>
+
+        <div class="col-sm-6">
+          <label for="lastName" class="form-label">Фамилия</label>
+          <input
+            name="last_name"
+            type="text"
+            class="form-control"
+            id="lastName"
+            placeholder="Пупкин"
+            value=""
+            required=""
+          />
+        </div>
+
+        <div class="col-12">
+          <div class="input-group has-validation">
+            <span class="input-group-text">ИИН</span>
+            <input
+              name="iin"
+              type="text"
+              class="form-control"
+              placeholder="19109912345"
+              required=""
+            />
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="input-group mb-3 form-label">
+            <label class="input-group-text" for="inputGroupFile01">Ваша фотография</label>
+            <input name="photo" type="file" accept="image/*" class="form-control" id="inputGroupFile01" />
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="input-group mb-3 form-label">
+            <label class="input-group-text" for="inputGroupFile01">Ваши документы</label>
+            <input name="file" type="file" class="form-control" id="inputGroupFile01" accept=".doc, .docx, .rtf, .odt, .pdf, .txt"/>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="input-group">
+            <span class="input-group-text" required>Расскажите о себе.</span>
+            <textarea
+              class="form-control"
+              aria-label="With textarea"
+              required
+              placeholder="Я пулеметчик, а этом мой новый пулемет..."
+              name="text"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 p-2">
+        <button type="submit" class="btn btn-primary input-group">Отправить</button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+{% endblock main %}

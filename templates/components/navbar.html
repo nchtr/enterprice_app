@@ -52,7 +52,7 @@
                 <form action={% url "login" %} method="POST">
                   {% csrf_token %}
                   <div class="px-3 mb-1">
-                    <input name="email" type="email" class="form-control form-control-xs" placeholder="Эл. почта">
+                    <input name="email" type="text" class="form-control form-control-xs" placeholder="Эл. почта">
                   </div>
                   <div class="px-3 mb-2">
                     <input name="password" type="password" class="form-control form-control-xs" placeholder="Пароль">

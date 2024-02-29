@@ -72,6 +72,7 @@ class Post(models.Model):
     )
     is_active = models.BooleanField(verbose_name="Активность поста", default=True)
     date_time = models.DateTimeField(default=now, verbose_name="Дата и время подачи")
+    slug = models.SlugField(default="changeit")
 
     class Meta:
         """Вспомогательный класс"""
@@ -80,6 +81,10 @@ class Post(models.Model):
         ordering = ("-is_active", "title")
         verbose_name = "Пост"
         verbose_name_plural = "Посты"
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(translit(f"{self.title}", "ru", reversed=True))
+        super(Post, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"<Post {self.title} {self.author.username}>"
@@ -111,7 +116,6 @@ class PostRatings(models.Model):
     author = models.ForeignKey(to=User, on_delete=models.CASCADE)  # OneToMany +-
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
-    count = models.PositiveIntegerField(default=0)
 
     class Meta:
         app_label = "django_app"
@@ -120,14 +124,12 @@ class PostRatings(models.Model):
         verbose_name_plural = "Рейтинги к новостям"
 
     def __str__(self):
-        if self.status and self.count >= 9999:
+        if self.status:
             like = "ЛАЙК"
-            count = "9999+"
         else:
             like = "ДИЗЛАЙК"
-            count = str(self.count)
 
-        return f"{self.post.title} {self.author.username} {count} {like}"
+        return f"{self.post.title} {self.author.username} {like}"
 
 
 class Vacancies(models.Model):
@@ -147,7 +149,11 @@ class Vacancies(models.Model):
         verbose_name_plural = "вакансии"
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(translit(f"{self.title}", "ru", reversed=True)+"-"+translit(f"{self.company}", "ru", reversed=True))
+        self.slug = slugify(
+            translit(f"{self.title}", "ru", reversed=True)
+            + "-"
+            + translit(f"{self.company}", "ru", reversed=True)
+        )
         super(Vacancies, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -171,7 +177,11 @@ class Resume(models.Model):
     iin = models.BigIntegerField()
     text = models.TextField()
     photo = models.ImageField(
-        verbose_name="Изображение", upload_to="hr/requests/photos"
+        verbose_name="Изображение",
+        upload_to="hr/requests/photos",
+        default=None,
+        null=True,
+        blank=True,
     )
     documents = models.FileField(
         verbose_name="docs",
